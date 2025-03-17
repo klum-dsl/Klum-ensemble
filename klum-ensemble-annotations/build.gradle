@@ -1,0 +1,18 @@
+plugins {
+    id "klum-ensemble.base-conventions"
+}
+
+description "Annotations for KlumEnsemble"
+
+dependencies {
+    api libs.annodocimal.annotations
+    api libs.klum.cast.annotations
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from(components.java)
+        }
+    }
+}

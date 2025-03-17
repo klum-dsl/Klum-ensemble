@@ -1,0 +1,74 @@
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+    repositories {
+        mavenCentral()
+        gradlePluginPortal()
+    }
+}
+
+plugins {
+    id 'nebula.release'
+    id 'base'
+
+    id "com.github.hierynomus.license"
+    id 'org.ajoberstar.git-publish'
+    id "com.github.ben-manes.versions"
+    id "io.github.gradle-nexus.publish-plugin"
+    id "org.sonarqube"
+}
+
+group 'com.blackbuild.klum.ensemble'
+description 'The more, the merrier'
+
+nexusPublishing {
+    repositories {
+        sonatype()
+    }
+}
+
+sonar {
+    properties {
+        property "sonar.projectKey", "blackbuild_klum-ensemble"
+        property "sonar.organization", "blackbuild"
+        property "sonar.host.url", "https://sonarcloud.io"
+        property "sonar.gradle.skipCompile", "true"
+    }
+}
+
+gitPublish {
+    repoUri = 'git@github.com:klum-dsl/klum-ensemble.wiki.git'
+    branch = 'master'
+
+    contents {
+        from 'wiki'
+        filesMatching('*.md') {
+            filter(ReplaceTokens, tokens: [version: version.toString()])
+        }
+        from('.') {
+            include("CHANGES.md")
+            rename('CHANGES.md', "Changelog.md")
+        }
+    }
+
+    repoDir = layout.buildDirectory.dir("gitPublish")
+
+    commitMessage = "updated wiki for $version"
+}
+
+releaseCheck.doLast {
+    if (!gradle.includedBuilds.isEmpty())
+        throw new GradleException("Releasing is not allowed with composite builds. Please release $gradle.includedBuilds separately")
+}
+
+evaluationDependsOnChildren()
+
+tasks.candidate.finalizedBy tasks.gitPublishPush
+tasks.final.finalizedBy tasks.gitPublishPush
+
+if (hasProperty('buildScan')) {
+    buildScan {
+        termsOfServiceUrl = 'https://gradle.com/terms-of-service'
+        termsOfServiceAgree = 'yes'
+    }
+}

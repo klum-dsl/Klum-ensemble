@@ -1,0 +1,38 @@
+plugins {
+    id "klum-ensemble.multigroovy-conventions"
+    id "jacoco"
+}
+
+description "compileOnly part of KlumEnsemble"
+
+test {
+    inputs.dir file("src/test/scenarios")
+    outputs.dir layout.buildDirectory.dir("test-classes")
+}
+
+
+jacoco {
+    toolVersion = "0.8.11"
+}
+jacocoTestReport {
+    executionData(tasks.withType(Test))
+    reports {
+        xml.required = true
+    }
+}
+
+dependencies {
+    // all dependencies are compile time dependencies (for AST "runtime" is compile time of a client project")
+    api project(':klum-ensemble-annotations')
+    api libs.annodocimal.global.ast
+    api libs.klum.cast.compile
+}
+
+publishing {
+    publications {
+        mavenJava(MavenPublication) {
+            from(components.java)
+        }
+    }
+}
+
